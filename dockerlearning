@@ -1,0 +1,123 @@
+#!/bin/bash
+sudo yum update -y
+sudo yum install -y yum-utils
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo yum install docker-ce docker-ce-cli containerd.io -y
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo docker --version
+sudo groupadd docker
+sudo usermod -aG docker up000054
+sudo chmod 666 /var/run/docker.sock
+
+#useful Docker commands
+docker run [OPTIONS] Image:TAG COMMAND ARG
+docker run hello-world
+docker run nginx:1.115.11 (run nginx image of particular version)
+docker run busybox echo Hello World (Runs Busy box and prints hello world. Run an image a command in it)
+
+#OPTIONS IN docker
+docker -d (Run container in detached mode) docker run -d nginx
+docker container stop (container name) [Stop container]
+docker run -d --name nginx nginx (Assign container name specifically)
+docker run -d --name nginx --restart no nginx (Restart specifies when container need to restart automatically)
+deafult option for container is no (Never start the container)
+       on-failure :(Only when the container fails)
+       always: (Always restart the container)
+	   on-failuer:Only if the container fails
+       unless-stopped (Always restart the container on fials and on demaen startupp or unless the container is manually stopped)
+docker run -d --name nginx -p 8080:80 nginx (publish Host port 8080 to port 80 or Expose contianer port 80 and map it to port 8080 on host and you can use multiple ports)
+docker run -d --name nginx -p 8080:80 --rm nginx (automatically deletes container after it stopped) 
+docker run -d --name nginx -p 8080:80 --memory 500M --memory-reservation 256M nginx (Hard limits memory to sepcific amount and as we run out of memoory it will assign 256M)
+	   
+#MANAGE CONTAINERS	  
+docker ps (list current running containers) (ps -a list all the containers)
+docker container stop (containername) stops the container
+docker container start (containername) starts the container
+docker container rm (container name) removes the container (Note you cannot remove a running container)
+docker containe prune (delete unused containers)
+
+#DOWNGRADE DOCKER
+To downgrad docker stop the docker container
+sudo systemctl stop docker
+
+Remove the packages
+sudo yum remove -y docker-ce docker-ce-cli
+sudo yum install -y docker-ce=version docker-ce-cli=version
+docker version (Check downgraded version)
+
+
+#UPGRADING DOCKER
+
+sudo yum install -y docker-ce=version docker-ce-cli=version
+docker version
+
+#CONFIGURING LOGGING DRIVERS
+
+Logging drivers are pluggable framework for accessing log data from services and containers in Docker. Docker supports variety of LOGGING
+
+Configure the default loggin driver by setting log-driver and log-opts in /etc/docker/daemon.json
+
+You can Override the Default logging driver and Option for a docker container with --log-driver and --log-opt flags when using docker run
+
+#CHECK THE CURRENT LOGGING DRIVER 
+docker info|grep -i logging (In my case the logging driver is Json File)
+docker run --log-driver syslog nginx (override logging drive)
+
+#USE OPTIONS IN LOGGING
+docker run --log-driver json-file --log-opt max-size=50m nginx
+
+#DOCKER SWARM
+How to setup docker swarm
+
+#CREATING A DOCKER SWARM
+docker swarm init (Install socker ce and instialize the docker swarm)
+Once the swarm is intialized you can see some info about swarm with docker info
+You can list the current nodes in the swarm with docker node ls
+
+docker swarm init --advertise-addr (set it to the private IP)
+docker info (check Swarm is Active,NodeID,Is manager True)
+docker node ls (list all the nodes in swarm)
+
+#CONFIGURING SWARM NODES 
+
+with swarm manager setup we can add some of the worker Nodes to the Swarm.
+
+install docker ce on both the nodes
+
+on swarm manager run (docker swar join-token worker) this will genarate a commond with token you can run on nodes to join SWARM
+ 
+docker swarm join -token xxihhhhhssssssssssssssss
+
+(this will allow node join to swarm)
+
+#BACKING UP AND RESTORE DOCKER SWARM
+
+#BACKUP
+stop the docker services
+sudo systemctl stop docker
+back sudo tar -zvcf backup.tar.gz /var/lib/docker/swarm
+sudo systemctl start docker
+
+#RESTORE
+stop the docker services
+sudo systemctl stop docke
+Remove /var/lib/docker/swarm/*
+untar the backup into the /var/lib/docker/swarm/
+sudo systemctl start docker
+
+If you want to make it high available then have two Nodemanager
+
+#NAME SPACES
+Name spaces are a linux technology that allows processes to be isloted in terms of the resources that they use
+They can prevent different processs from interferring or interferring with one another
+Docker uses namespace to isolate containers. this allows containers to operate independentyl and securely
+Docker user namespaces to isolate resources for container pid,net,ipc,mnt.uts,usernamespace 
+
+
+
+
+
+
+
+Source of learning Acloud Guru
